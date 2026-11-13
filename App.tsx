@@ -1,342 +1,225 @@
 import { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Linking } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  Linking,
+  KeyboardAvoidingView,
+  Platform,
+  Share,
+} from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { isSimulatedStore, useUntamedPurchase } from "./purchases";
-
-type CardType = { type: string; text: string };
-type LevelType = {
-  id: number;
-  name: string;
-  subtitle: string;
-  emoji: string;
-  accent: string;
-  dark: string;
-  darkTheme: boolean;
-  cards: CardType[];
-};
-
-const LEVELS: LevelType[] = [
-  {
-    id: 1, name: "Icebreaker", subtitle: "Let's get comfortable", emoji: "🌸", accent: "#c9748a", dark: "#7a3348", darkTheme: false,
-    cards: [
-      { type: "question", text: "What's your favorite color and why?" },
-      { type: "question", text: "Are you a morning person or a night owl?" },
-      { type: "question", text: "What's your go-to comfort food?" },
-      { type: "challenge", text: "Tell each other one thing you noticed about the other when you first met." },
-      { type: "question", text: "What's the last show you binged?" },
-      { type: "question", text: "Dogs or cats — and why?" },
-      { type: "challenge", text: "Share your most-used emoji right now." },
-      { type: "question", text: "What's your favorite season?" },
-      { type: "question", text: "Tea, coffee, or neither?" },
-      { type: "question", text: "What's your hometown like?" },
-      { type: "question", text: "Do you have any siblings?" },
-      { type: "question", text: "What's your favorite type of music?" },
-      { type: "question", text: "Are you more of a homebody or an adventurer?" },
-      { type: "challenge", text: "Show each other your phone's home screen." },
-      { type: "question", text: "What did you want to be when you grew up?" },
-      { type: "question", text: "What's your favorite movie genre?" },
-      { type: "question", text: "Do you prefer sweet or savory?" },
-      { type: "question", text: "What's a hobby you could talk about for hours?" },
-      { type: "question", text: "What's your favorite day of the week?" },
-      { type: "challenge", text: "Name three things you two might have in common." },
-      { type: "question", text: "Beach, mountains, or city?" },
-      { type: "question", text: "What's the last book you read?" },
-      { type: "question", text: "Are you a planner or a spontaneous person?" },
-      { type: "question", text: "What's a movie that always makes you laugh?" },
-      { type: "question", text: "What's something you collect, even casually?" },
-      { type: "challenge", text: "Teach each other a word from a language you know." },
-      { type: "question", text: "What's your earliest childhood memory?" },
-      { type: "question", text: "Do you prefer cooking at home or eating out?" },
-      { type: "question", text: "What's your go-to road trip snack?" },
-      { type: "question", text: "Are you more of a texter or a caller?" },
-      { type: "question", text: "What's a sport or activity you've always wanted to try?" },
-      { type: "challenge", text: "Show each other the last song you listened to." },
-      { type: "question", text: "Window seat or aisle seat?" },
-      { type: "question", text: "What's your star sign — do you believe in it?" },
-      { type: "question", text: "What's your favorite holiday?" },
-      { type: "question", text: "What's something you're surprisingly good at?" },
-      { type: "challenge", text: "Each pick one word to describe tonight so far." },
-      { type: "question", text: "What does your perfect Saturday look like?" },
-      { type: "question", text: "What's the weirdest thing you've ever eaten?" },
-      { type: "question", text: "Do you have any recurring dreams?" },
-      { type: "question", text: "What app do you use the most?" },
-      { type: "question", text: "What's your favorite thing about where you live?" },
-      { type: "challenge", text: "Say one genuine thing you like about the other person." },
-      { type: "question", text: "What's your comfort movie — the one you rewatch?" },
-      { type: "question", text: "Are you more introverted or extroverted?" },
-      { type: "question", text: "What's a word you always misspell?" },
-      { type: "question", text: "What's your favorite type of weather?" },
-      { type: "question", text: "What's a skill you wish you had?" },
-      { type: "challenge", text: "Take a silly selfie together right now." },
-      { type: "question", text: "If you could live anywhere for a year, where would it be?" },
-    ],
-  },
-  {
-    id: 2, name: "Getting Warmer", subtitle: "A little more personal", emoji: "🌹", accent: "#c96a4a", dark: "#7a2e1a", darkTheme: false,
-    cards: [
-      { type: "question", text: "What's something you're really proud of?" },
-      { type: "question", text: "What does your perfect Sunday look like?" },
-      { type: "challenge", text: "Show each other the last photo on your camera roll." },
-      { type: "question", text: "What's one habit you wish you could break?" },
-      { type: "question", text: "What's the best trip you've ever taken?" },
-      { type: "challenge", text: "Do your best impression of someone — let your date guess who." },
-      { type: "question", text: "What's something most people don't know about you?" },
-      { type: "question", text: "What's your love language?" },
-      { type: "question", text: "What's your biggest fear?" },
-      { type: "question", text: "What's a belief you hold that surprises people?" },
-      { type: "question", text: "What does success mean to you?" },
-      { type: "question", text: "What's the hardest thing you've been through?" },
-      { type: "challenge", text: "Show each other a photo of someone important to you and explain why." },
-      { type: "question", text: "What's something you're currently working on improving?" },
-      { type: "question", text: "What's a value you would never compromise on?" },
-      { type: "question", text: "What's been the best year of your life so far?" },
-      { type: "question", text: "What kind of relationship did you have with your parents growing up?" },
-      { type: "question", text: "What's something you've changed your mind about recently?" },
-      { type: "challenge", text: "Each describe your ideal future in exactly three sentences." },
-      { type: "question", text: "What does friendship mean to you?" },
-      { type: "question", text: "What's a moment that defined who you are today?" },
-      { type: "question", text: "What are you most grateful for right now?" },
-      { type: "challenge", text: "Tell each other something you are genuinely insecure about." },
-      { type: "question", text: "What's a lesson you learned the hard way?" },
-      { type: "question", text: "How do you handle conflict?" },
-      { type: "question", text: "What's something your younger self would be shocked by today?" },
-      { type: "question", text: "What do you need most when you're upset?" },
-      { type: "question", text: "Who knows you best in the world?" },
-      { type: "challenge", text: "Each send a voice message to someone you love right now." },
-      { type: "question", text: "What's a dream you've let go of — and are you at peace with it?" },
-      { type: "question", text: "What does a healthy relationship look like to you?" },
-      { type: "question", text: "What's something you're still figuring out about yourself?" },
-      { type: "question", text: "What's your relationship with money like?" },
-      { type: "challenge", text: "Say something kind to each other that you would normally only say after months of knowing someone." },
-      { type: "question", text: "What do you think is your biggest strength?" },
-      { type: "question", text: "What's something you deeply regret?" },
-      { type: "question", text: "How do you recharge after a hard week?" },
-      { type: "question", text: "What's your relationship with social media?" },
-      { type: "question", text: "What's one thing you want to do before you die?" },
-      { type: "challenge", text: "Each share a photo that means a lot to you and tell the story." },
-      { type: "question", text: "What's something you've never told anyone on a first date?" },
-      { type: "question", text: "How has your childhood shaped who you are?" },
-      { type: "question", text: "What's something you've had to forgive yourself for?" },
-      { type: "challenge", text: "Describe each other's energy in one word." },
-      { type: "question", text: "What's a red flag you've ignored in the past?" },
-      { type: "question", text: "What does love look like in action to you?" },
-      { type: "question", text: "What's a version of yourself you've outgrown?" },
-      { type: "challenge", text: "Hold a 60-second conversation using only questions." },
-      { type: "question", text: "What's something that makes you irrationally happy?" },
-      { type: "question", text: "If you could change one thing about yourself, what would it be?" },
-    ],
-  },
-  {
-    id: 3, name: "Sparks", subtitle: "Now we're flirting", emoji: "🔥", accent: "#c87c2a", dark: "#7a3e08", darkTheme: false,
-    cards: [
-      { type: "question", text: "What's the most spontaneous thing you've ever done?" },
-      { type: "challenge", text: "Hold eye contact for 30 seconds without looking away." },
-      { type: "question", text: "What do you find most attractive in a person?" },
-      { type: "challenge", text: "Give your date a genuine, specific compliment about their appearance." },
-      { type: "question", text: "What's a deal-breaker for you in a relationship?" },
-      { type: "question", text: "Do you believe in love at first sight?" },
-      { type: "question", text: "What's the most romantic thing someone has ever done for you?" },
-      { type: "challenge", text: "Show each other the most flirtatious text you've ever sent." },
-      { type: "question", text: "What's your idea of a perfect date — not this one?" },
-      { type: "question", text: "What's something you do that you find attractive about yourself?" },
-      { type: "challenge", text: "Text your best friend: I think I am falling for someone. Show each other the replies." },
-      { type: "question", text: "Have you ever fallen for someone you were not supposed to?" },
-      { type: "question", text: "What's your most embarrassing date story?" },
-      { type: "question", text: "What's the first thing you noticed about me?" },
-      { type: "challenge", text: "Take turns saying one thing that's been on your mind since you arrived." },
-      { type: "question", text: "How important is physical attraction to you?" },
-      { type: "question", text: "What song would you dedicate to someone you're falling for?" },
-      { type: "challenge", text: "Each say the last thing you googled — no hiding it." },
-      { type: "question", text: "What makes someone undeniably attractive to you beyond looks?" },
-      { type: "question", text: "What's your flirting style?" },
-      { type: "challenge", text: "Look your date in the eyes and tell them one thing you find beautiful about them." },
-      { type: "question", text: "What's a scent that drives you crazy?" },
-      { type: "question", text: "Do you fall fast, or do you take your time?" },
-      { type: "question", text: "What's something small that gives you butterflies?" },
-      { type: "challenge", text: "Both lean in slightly closer than you normally would. Stay there for the next question." },
-      { type: "question", text: "What's the most attractive quality someone can have in a conversation?" },
-      { type: "question", text: "Do you believe in soulmates?" },
-      { type: "question", text: "What's the boldest move you've ever made on someone you liked?" },
-      { type: "challenge", text: "Swap phones for 60 seconds — no reading messages, just feel the vibe of their phone." },
-      { type: "question", text: "What song would be playing in the background of your first kiss?" },
-      { type: "question", text: "How do you know when chemistry is real?" },
-      { type: "challenge", text: "Move closer so your knees are almost touching. Stay like this." },
-      { type: "question", text: "Have you ever kissed someone on a first date?" },
-      { type: "question", text: "What's your best physical feature — in your own opinion?" },
-      { type: "challenge", text: "Describe what you think the other person smells like right now — then confirm." },
-      { type: "question", text: "What do you do when you're trying to impress someone?" },
-      { type: "question", text: "Do you think we have chemistry?" },
-      { type: "challenge", text: "Give your date a slow, intentional once-over. Tell them what you see." },
-      { type: "question", text: "Have you been thinking about kissing me tonight?" },
-      { type: "question", text: "What's something about yourself that gets better with time?" },
-      { type: "challenge", text: "Touch your date's hand for exactly 10 seconds." },
-      { type: "question", text: "Would you rather be kissed unexpectedly or asked first?" },
-      { type: "question", text: "What's the most irresistible thing someone can do on a date?" },
-      { type: "challenge", text: "Whisper something you would only say after three dates." },
-      { type: "question", text: "When did you first feel something tonight?" },
-      { type: "question", text: "What's your best trait in a relationship?" },
-      { type: "challenge", text: "Lean in and say something in your date's ear. Make it worth it." },
-      { type: "question", text: "What kind of touch do you find most intimate?" },
-      { type: "challenge", text: "Look at each other for 45 seconds. No talking. Just look." },
-      { type: "question", text: "If tonight ends with a kiss — would that be too fast?" },
-    ],
-  },
-  {
-    id: 4, name: "Desire", subtitle: "Things are heating up", emoji: "💋", accent: "#9c3060", dark: "#5a1030", darkTheme: false,
-    cards: [
-      { type: "question", text: "What's your biggest turn-on?" },
-      { type: "challenge", text: "Feed each other a bite of something on the table." },
-      { type: "question", text: "Describe your ideal physical connection with a partner." },
-      { type: "challenge", text: "Whisper something you haven't told anyone tonight into your date's ear." },
-      { type: "question", text: "What's a fantasy you've never shared with anyone?" },
-      { type: "challenge", text: "Take your date's hand and trace slow circles on their palm for 30 seconds." },
-      { type: "question", text: "What part of someone's body do you find most attractive?" },
-      { type: "challenge", text: "Kiss your date's hand — slowly, looking them in the eyes." },
-      { type: "question", text: "What's something that instantly gets you in the mood?" },
-      { type: "question", text: "Have you ever had a secret crush on someone you should not have?" },
-      { type: "challenge", text: "Run a finger slowly from your date's wrist to their elbow." },
-      { type: "question", text: "What's the most passionate thing you've ever done?" },
-      { type: "question", text: "What does physical intimacy mean to you?" },
-      { type: "challenge", text: "Look your date in the eyes and say: I am attracted to you." },
-      { type: "question", text: "Where on your body do you like to be touched most?" },
-      { type: "question", text: "What's the longest you've gone without sex — and how did it feel?" },
-      { type: "challenge", text: "Gently tuck a strand of hair behind your date's ear." },
-      { type: "question", text: "What's something you've always wanted to try in the bedroom?" },
-      { type: "question", text: "How do you like to be kissed?" },
-      { type: "challenge", text: "Slowly place your hand on your date's thigh. Keep it there for the next card." },
-      { type: "question", text: "What's your favorite time of day for intimacy?" },
-      { type: "question", text: "Have you ever been attracted to someone the instant you looked at them?" },
-      { type: "challenge", text: "Press your foreheads together without saying a word for 30 seconds." },
-      { type: "question", text: "What do you think you are like in bed — in one sentence?" },
-      { type: "question", text: "What's a sound that turns you on?" },
-      { type: "challenge", text: "Kiss your way slowly from your date's hand to their wrist." },
-      { type: "question", text: "Do you prefer to give or receive?" },
-      { type: "question", text: "What's the difference between passion and love for you?" },
-      { type: "challenge", text: "Whisper what you would do if you two were alone right now." },
-      { type: "question", text: "What's one thing you always wish a partner would do more of?" },
-      { type: "question", text: "What's the sexiest quality about you that is not physical?" },
-      { type: "challenge", text: "Lean in as close as possible without kissing. Hold it." },
-      { type: "question", text: "When was the last time you felt truly desired?" },
-      { type: "question", text: "What's something you want me to know about you, physically?" },
-      { type: "challenge", text: "Slowly run your fingers through your date's hair." },
-      { type: "question", text: "Fast and passionate, or slow and sensual?" },
-      { type: "question", text: "What's the most aroused you've ever felt in public?" },
-      { type: "challenge", text: "Put your lips close to your date's ear and describe what you're feeling." },
-      { type: "question", text: "What's your go-to move when you want to seduce someone?" },
-      { type: "question", text: "What does desire feel like in your body?" },
-      { type: "challenge", text: "Tell your date one thing you would like to do to them later." },
-      { type: "question", text: "What's a part of your body you want your date to notice?" },
-      { type: "question", text: "What's the most turned on you've been from just a conversation?" },
-      { type: "challenge", text: "Kiss your date's neck, just once, gently." },
-      { type: "question", text: "If we were somewhere completely private right now — what would you do?" },
-      { type: "question", text: "What type of touch makes you forget everything else?" },
-      { type: "challenge", text: "Hold your date's face in both hands. Look at them. Say nothing." },
-      { type: "question", text: "What would make tonight unforgettable?" },
-      { type: "challenge", text: "Kiss — wherever feels right." },
-      { type: "question", text: "What comes next?" },
-    ],
-  },
-  {
-    id: 5, name: "Untamed", subtitle: "No limits", emoji: "🖤", accent: "#e0305a", dark: "#ff6080", darkTheme: true,
-    cards: [
-      { type: "challenge", text: "Lick a small drop of something sweet off your date's fingertip." },
-      { type: "question", text: "What's the wildest place you've ever hooked up — or would want to?" },
-      { type: "challenge", text: "Kiss your date somewhere unexpected — not the lips." },
-      { type: "question", text: "What's something physical you would love your date to do to you right now?" },
-      { type: "challenge", text: "Slowly remove one item of your date's clothing." },
-      { type: "challenge", text: "Kiss your way from your date's hand to their shoulder, slowly." },
-      { type: "question", text: "How long could you go without — and what would break you first?" },
-      { type: "question", text: "What's the dirtiest thought you've had tonight?" },
-      { type: "challenge", text: "Blindfold your date with a piece of clothing. Touch them somewhere. They guess where." },
-      { type: "question", text: "What's your wildest sexual fantasy?" },
-      { type: "challenge", text: "Use your mouth only to remove something small from your date's body — no hands." },
-      { type: "question", text: "What's something you would only do with someone you completely trust?" },
-      { type: "challenge", text: "Describe out loud what you want to do to your date right now." },
-      { type: "question", text: "Have you ever had a one-night stand? Would you again?" },
-      { type: "challenge", text: "Take a body shot off your date." },
-      { type: "question", text: "What's your most explicit fantasy involving a stranger?" },
-      { type: "challenge", text: "Slowly unbutton one button on your date's shirt — or have them do yours." },
-      { type: "question", text: "What's the most risque thing you've ever done in public?" },
-      { type: "challenge", text: "Bite your date's lower lip gently when you next kiss them." },
-      { type: "question", text: "Lights on or off — and why?" },
-      { type: "challenge", text: "Sit in your date's lap for the next three cards." },
-      { type: "question", text: "What's a position you've always wanted to try?" },
-      { type: "challenge", text: "Whisper the filthiest thing you can think of into your date's ear." },
-      { type: "question", text: "What's the longest and most intense make-out session you've ever had?" },
-      { type: "challenge", text: "Trace your lips slowly across your date's collarbone." },
-      { type: "question", text: "Role play — who would you be and what would the scenario be?" },
-      { type: "challenge", text: "Feed your date something using only your mouth." },
-      { type: "question", text: "What's the most turned on you've ever been in your life?" },
-      { type: "challenge", text: "Kiss your date's inner wrist and hold your lips there for five seconds." },
-      { type: "question", text: "Describe your perfect intimate evening — hour by hour." },
-      { type: "challenge", text: "Tell your date exactly what you want them to do to you in the next hour." },
-      { type: "question", text: "Have you ever sent an explicit photo? Would you?" },
-      { type: "challenge", text: "Lick your date's neck slowly — just once." },
-      { type: "question", text: "What's a limit you have — and what lies just beyond it?" },
-      { type: "challenge", text: "Kiss your date's chest." },
-      { type: "question", text: "What do you sound like when you're truly into it?" },
-      { type: "challenge", text: "Run your hand from your date's knee slowly upward. Stop when they say stop." },
-      { type: "question", text: "What's your most powerful physical memory with someone?" },
-      { type: "challenge", text: "Undress your date — just a little. Just enough." },
-      { type: "question", text: "What do you want from tonight — honestly?" },
-      { type: "challenge", text: "Kiss your date's stomach." },
-      { type: "question", text: "Is there anything left you haven't done that you want to do tonight?" },
-      { type: "challenge", text: "Ask your date's permission to do something you've been holding back. Then do it." },
-      { type: "question", text: "What's the most intimate thing that doesn't involve sex?" },
-      { type: "challenge", text: "Lick your date's ear — softly." },
-      { type: "question", text: "If there were no consequences, what would you do right now?" },
-      { type: "challenge", text: "Get as physically close as possible without any clothing coming off." },
-      { type: "question", text: "When did you know tonight was going somewhere?" },
-      { type: "challenge", text: "The final dare: you decide together. Make it worth it." },
-      { type: "question", text: "No more questions. Just you two." },
-    ],
-  },
-];
+import { LEVELS, buildDeck, forfeitFor, type CustomCard, type DeckCard } from "./content";
+import { loadCustomCards, loadPlayers, saveCustomCards, savePlayers } from "./storage";
 
 const PAID_LEVEL_ID = 5;
 const PRIVACY_URL = "https://olaimalm.github.io/firstdate-support/privacy.html";
+const MAX_CARD_LENGTH = 200;
+
+type Screen = "home" | "setup" | "levels" | "paywall" | "card" | "complete" | "mycards" | "summary";
+type PlayerStats = { hearts: number; questions: number; dares: number; skips: number };
+type KeptCard = { text: string; type: string; levelId: number };
+
+const emptyStats = (): [PlayerStats, PlayerStats] => [
+  { hearts: 0, questions: 0, dares: 0, skips: 0 },
+  { hearts: 0, questions: 0, dares: 0, skips: 0 },
+];
+
+const isDare = (type: string) => type === "challenge";
+const heartsFor = (type: string) => (isDare(type) ? 2 : 1);
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 export default function App() {
-  const [screen, setScreen] = useState<string>("home");
-  const [currentLevel, setCurrentLevel] = useState<number | null>(null);
-  const [cardIndex, setCardIndex] = useState<number>(0);
+  const [screen, setScreen] = useState<Screen>("home");
   const purchase = useUntamedPurchase();
 
-  const level = currentLevel ? LEVELS.find((l) => l.id === currentLevel) : null;
-  const card = level ? level.cards[cardIndex] : null;
+  // The evening: players, turns, score and the cards they kept.
+  const [names, setNames] = useState<[string, string]>(["", ""]);
+  const [eveningStart, setEveningStart] = useState<number | null>(null);
+  const [turn, setTurn] = useState<0 | 1>(0);
+  const [stats, setStats] = useState<[PlayerStats, PlayerStats]>(emptyStats);
+  const [kept, setKept] = useState<KeptCard[]>([]);
+  const [levelsFinished, setLevelsFinished] = useState<number[]>([]);
+
+  // The level being played.
+  const [currentLevel, setCurrentLevel] = useState<number | null>(null);
+  const [deck, setDeck] = useState<DeckCard[]>([]);
+  const [cardIndex, setCardIndex] = useState(0);
+  const [forfeit, setForfeit] = useState<string | null>(null);
+
+  // The couple's own cards.
+  const [customCards, setCustomCards] = useState<CustomCard[]>([]);
+  const [draftText, setDraftText] = useState("");
+  const [draftType, setDraftType] = useState<"question" | "challenge">("question");
+  const [draftLevel, setDraftLevel] = useState(1);
+  const [myCardsBack, setMyCardsBack] = useState<Screen>("home");
+
+  useEffect(() => {
+    loadCustomCards().then(setCustomCards);
+    loadPlayers().then(setNames);
+  }, []);
+
+  const level = currentLevel ? LEVELS.find((l) => l.id === currentLevel) ?? null : null;
+  const card = deck[cardIndex] ?? null;
   const isDark = (screen === "card" || screen === "complete") && (level?.darkTheme ?? false);
-  const onDarkBackground = screen === "home" || screen === "paywall" || isDark;
+  const onDarkBackground = screen === "home" || screen === "paywall" || screen === "setup" || screen === "summary" || isDark;
   const paidLevel = LEVELS[PAID_LEVEL_ID - 1];
+  const playerName = (i: 0 | 1) => names[i].trim() || `Player ${i + 1}`;
+
+  const openLevel = (lid: number) => {
+    const lvl = LEVELS.find((l) => l.id === lid);
+    if (!lvl) return;
+    setCurrentLevel(lid);
+    setDeck(buildDeck(lvl, customCards));
+    setCardIndex(0);
+    setForfeit(null);
+    setScreen("card");
+  };
 
   const startLevel = (lid: number) => {
     if (lid === PAID_LEVEL_ID && !purchase.unlocked) {
       setScreen("paywall");
       return;
     }
-    setCurrentLevel(lid);
-    setCardIndex(0);
-    setScreen("card");
+    openLevel(lid);
   };
 
   useEffect(() => {
-    if (purchase.unlocked && screen === "paywall") {
-      setCurrentLevel(PAID_LEVEL_ID);
-      setCardIndex(0);
-      setScreen("card");
-    }
+    if (purchase.unlocked && screen === "paywall") openLevel(PAID_LEVEL_ID);
+    // openLevel only reads state that is current on this render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [purchase.unlocked, screen]);
 
-  const nextCard = () => {
-    if (!level) return;
-    if (cardIndex + 1 >= level.cards.length) {
+  const startEvening = () => {
+    const trimmed: [string, string] = [names[0].trim(), names[1].trim()];
+    setNames(trimmed);
+    savePlayers(trimmed);
+    setEveningStart(Date.now());
+    setTurn(0);
+    setStats(emptyStats());
+    setKept([]);
+    setLevelsFinished([]);
+    setScreen("levels");
+  };
+
+  const updateStats = (change: (s: PlayerStats) => PlayerStats) => {
+    setStats((prev) => {
+      const next: [PlayerStats, PlayerStats] = [{ ...prev[0] }, { ...prev[1] }];
+      next[turn] = change(next[turn]);
+      return next;
+    });
+  };
+
+  const advance = () => {
+    setForfeit(null);
+    setTurn((t) => (t === 0 ? 1 : 0));
+    if (cardIndex + 1 >= deck.length) {
+      if (level && !levelsFinished.includes(level.id)) setLevelsFinished((f) => [...f, level.id]);
       setScreen("complete");
     } else {
       setCardIndex((i) => i + 1);
     }
   };
 
+  const completeCard = () => {
+    if (!card) return;
+    updateStats((s) => ({
+      ...s,
+      hearts: s.hearts + heartsFor(card.type),
+      questions: s.questions + (isDare(card.type) ? 0 : 1),
+      dares: s.dares + (isDare(card.type) ? 1 : 0),
+    }));
+    advance();
+  };
+
+  const skipCard = () => {
+    if (!level) return;
+    updateStats((s) => ({ ...s, skips: s.skips + 1 }));
+    setForfeit(forfeitFor(level.id));
+  };
+
+  const isKept = (c: DeckCard | null) => !!c && kept.some((k) => k.text === c.text);
+  const toggleKeep = () => {
+    if (!card || !level) return;
+    setKept((prev) =>
+      isKept(card) ? prev.filter((k) => k.text !== card.text) : [...prev, { text: card.text, type: card.type, levelId: level.id }]
+    );
+  };
+
+  const openMyCards = (from: Screen) => {
+    setMyCardsBack(from);
+    setScreen("mycards");
+  };
+
+  const addCustomCard = () => {
+    const text = draftText.trim();
+    if (!text) return;
+    const next = [...customCards, { id: `${Date.now()}`, type: draftType, text, levelId: draftLevel }];
+    setCustomCards(next);
+    saveCustomCards(next);
+    setDraftText("");
+  };
+
+  const deleteCustomCard = (id: string) => {
+    const next = customCards.filter((c) => c.id !== id);
+    setCustomCards(next);
+    saveCustomCards(next);
+  };
+
+  const endEvening = () => setScreen("summary");
+  const newEvening = () => {
+    setEveningStart(null);
+    setCurrentLevel(null);
+    setScreen("home");
+  };
+
+  const minutes = eveningStart ? Math.max(1, Math.round((Date.now() - eveningStart) / 60000)) : 0;
+  const cardsPlayed = stats.reduce((n, s) => n + s.questions + s.dares + s.skips, 0);
+  const result =
+    stats[0].hearts === stats[1].hearts
+      ? "A perfect tie. You're even."
+      : `${playerName(stats[0].hearts > stats[1].hearts ? 0 : 1)} takes the evening.`;
+
+  const shareSummary = () => {
+    const lines = [
+      `Our First Date evening 🌹`,
+      `${minutes} min · ${plural(cardsPlayed, "card")}${levelsFinished.length ? ` · ${plural(levelsFinished.length, "level")} finished` : ""}`,
+      `${playerName(0)}: ${stats[0].hearts} ♥  ·  ${playerName(1)}: ${stats[1].hearts} ♥`,
+      result,
+      ...(kept.length ? ["", "Cards we kept:", ...kept.map((k) => `• ${k.text}`)] : []),
+    ];
+    Share.share({ message: lines.join("\n") }).catch(() => {});
+  };
+
+  const background =
+    screen === "home" || screen === "paywall" || screen === "setup" || screen === "summary"
+      ? "#1a0510"
+      : isDark
+      ? "#0d0006"
+      : "#fdf6f8";
+
+  const Scoreboard = ({ dark }: { dark: boolean }) => (
+    <View style={[styles.scoreboard, { backgroundColor: dark ? "#ffffff0d" : "#fff" }]}>
+      {([0, 1] as const).map((i) => (
+        <View key={i} style={styles.scoreCell}>
+          <Text
+            style={[styles.scoreName, { color: dark ? "#f5d8e8" : "#2d0a1a" }, screen === "card" && turn === i && styles.scoreNameActive]}
+            numberOfLines={1}
+          >
+            {playerName(i)}
+          </Text>
+          <Text style={[styles.scoreHearts, { color: dark ? "#e0305a" : "#9c3060" }]}>{stats[i].hearts} ♥</Text>
+        </View>
+      ))}
+    </View>
+  );
+
   return (
-    <View style={[styles.container, { backgroundColor: screen === "home" || screen === "paywall" ? "#1a0510" : isDark ? "#0d0006" : "#fdf6f8" }]}>
+    <View style={[styles.container, { backgroundColor: background }]}>
       <StatusBar style={onDarkBackground ? "light" : "dark"} />
 
       {screen === "home" && (
@@ -344,42 +227,94 @@ export default function App() {
           <Text style={styles.rose}>🌹</Text>
           <Text style={styles.title}>First{"\n"}<Text style={styles.titleItalic}>Date</Text></Text>
           <Text style={styles.subtitle}>QUESTIONS & DARES</Text>
-          <TouchableOpacity style={styles.btnPrimary} onPress={() => setScreen("levels")}>
-            <Text style={styles.btnPrimaryText}>Begin the Evening</Text>
+          <TouchableOpacity style={styles.btnPrimary} onPress={() => setScreen(eveningStart ? "levels" : "setup")}>
+            <Text style={styles.btnPrimaryText}>{eveningStart ? "Continue the Evening" : "Begin the Evening"}</Text>
           </TouchableOpacity>
-          <Text style={styles.hint}>5 levels · 50 cards each · First 4 free</Text>
+          <TouchableOpacity style={[styles.btnGhost, { marginTop: 12 }]} onPress={() => openMyCards("home")}>
+            <Text style={styles.btnGhostText}>
+              Your Cards{customCards.length ? ` (${customCards.length})` : ""}
+            </Text>
+          </TouchableOpacity>
+          <Text style={styles.hint}>Take turns · Earn hearts · Write your own cards</Text>
         </View>
       )}
 
+      {screen === "setup" && (
+        <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+          <ScrollView contentContainerStyle={styles.setupScreen} keyboardShouldPersistTaps="handled">
+            <TouchableOpacity onPress={() => setScreen("home")}>
+              <Text style={styles.back}>Back</Text>
+            </TouchableOpacity>
+            <Text style={[styles.heading, { color: "#f5d8e8" }]}>Who's playing?</Text>
+            <Text style={[styles.subheading, { color: "#f5d8e888" }]}>
+              You take turns. Answer a question for 1 ♥, do a dare for 2 ♥. Skip, and you get a forfeit instead.
+            </Text>
+            {([0, 1] as const).map((i) => (
+              <TextInput
+                key={i}
+                style={styles.nameInput}
+                placeholder={`Player ${i + 1}`}
+                placeholderTextColor="#f5d8e855"
+                value={names[i]}
+                maxLength={20}
+                autoCapitalize="words"
+                returnKeyType={i === 0 ? "next" : "done"}
+                onChangeText={(t) => setNames((n) => (i === 0 ? [t, n[1]] : [n[0], t]))}
+              />
+            ))}
+            <TouchableOpacity style={[styles.btnPrimary, { marginTop: 16 }]} onPress={startEvening}>
+              <Text style={styles.btnPrimaryText}>Start</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      )}
+
       {screen === "levels" && (
-        <ScrollView style={{ width: "100%" }} contentContainerStyle={{ padding: 24, paddingTop: 60 }}>
+        <ScrollView style={styles.fill} contentContainerStyle={{ padding: 24, paddingTop: 60 }}>
           <TouchableOpacity onPress={() => setScreen("home")}>
-            <Text style={styles.back}>Back</Text>
+            <Text style={styles.back}>Home</Text>
           </TouchableOpacity>
           <Text style={styles.heading}>Choose your level</Text>
           <Text style={styles.subheading}>How brave are you feeling tonight?</Text>
-          {LEVELS.map((lvl) => (
-            <TouchableOpacity
-              key={lvl.id}
-              style={[styles.levelCard, { backgroundColor: lvl.darkTheme ? "#1a0510" : "#fff" }]}
-              onPress={() => startLevel(lvl.id)}
-            >
-              <View style={[styles.levelIcon, { backgroundColor: lvl.accent + "22" }]}>
-                <Text style={{ fontSize: 22 }}>{lvl.emoji}</Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.levelName, { color: lvl.darkTheme ? "#f5d8e8" : lvl.dark }]}>
-                  Level {lvl.id} — {lvl.name}
-                </Text>
-                <Text style={[styles.levelSub, { color: lvl.darkTheme ? "#f5d8e888" : "#9c6070" }]}>{lvl.subtitle}</Text>
-              </View>
-              {lvl.id === PAID_LEVEL_ID && !purchase.unlocked ? (
-                <Text style={{ fontSize: 18 }}>🔒</Text>
-              ) : (
-                <Text style={{ color: lvl.accent, fontSize: 20 }}>›</Text>
-              )}
+          <Scoreboard dark={false} />
+          {LEVELS.map((lvl) => {
+            const mine = customCards.filter((c) => c.levelId === lvl.id).length;
+            const finished = levelsFinished.includes(lvl.id);
+            return (
+              <TouchableOpacity
+                key={lvl.id}
+                style={[styles.levelCard, { backgroundColor: lvl.darkTheme ? "#1a0510" : "#fff" }]}
+                onPress={() => startLevel(lvl.id)}
+              >
+                <View style={[styles.levelIcon, { backgroundColor: lvl.accent + "22" }]}>
+                  <Text style={{ fontSize: 22 }}>{lvl.emoji}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.levelName, { color: lvl.darkTheme ? "#f5d8e8" : lvl.dark }]}>
+                    Level {lvl.id} — {lvl.name}
+                  </Text>
+                  <Text style={[styles.levelSub, { color: lvl.darkTheme ? "#f5d8e888" : "#9c6070" }]}>
+                    {lvl.subtitle}
+                    {mine ? ` · +${mine} of yours` : ""}
+                    {finished ? " · Done ✓" : ""}
+                  </Text>
+                </View>
+                {lvl.id === PAID_LEVEL_ID && !purchase.unlocked ? (
+                  <Text style={{ fontSize: 18 }}>🔒</Text>
+                ) : (
+                  <Text style={{ color: lvl.accent, fontSize: 20 }}>›</Text>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+          <View style={styles.row}>
+            <TouchableOpacity style={[styles.btnSecondary, styles.half]} onPress={() => openMyCards("levels")}>
+              <Text style={styles.btnSecondaryText}>Your Cards</Text>
             </TouchableOpacity>
-          ))}
+            <TouchableOpacity style={[styles.btnSecondary, styles.half]} onPress={endEvening}>
+              <Text style={styles.btnSecondaryText}>End Evening</Text>
+            </TouchableOpacity>
+          </View>
           <TouchableOpacity style={styles.privacyLink} onPress={() => Linking.openURL(PRIVACY_URL)}>
             <Text style={styles.privacyLinkText}>Privacy Policy</Text>
           </TouchableOpacity>
@@ -396,7 +331,7 @@ export default function App() {
             Level {paidLevel.id} — {paidLevel.name}
           </Text>
           <Text style={[styles.subheading, { color: "#f5d8e888", textAlign: "center", marginBottom: 40 }]}>
-            {paidLevel.cards.length} more cards.{"\n"}A one-time purchase, yours to keep.
+            {paidLevel.cards.length} more cards, and you can add your own.{"\n"}A one-time purchase, yours to keep.
           </Text>
           {purchase.loadFailed ? (
             <TouchableOpacity style={styles.btnPrimary} onPress={purchase.retry}>
@@ -425,53 +360,92 @@ export default function App() {
       )}
 
       {screen === "card" && level && card && (
-        <ScrollView
-          style={{ flex: 1, width: "100%", backgroundColor: isDark ? "#0d0006" : "#fdf6f8" }}
-          contentContainerStyle={styles.cardScreen}
-        >
+        <ScrollView style={[styles.fill, { backgroundColor: background }]} contentContainerStyle={styles.cardScreen}>
           <View style={styles.cardHeader}>
             <TouchableOpacity onPress={() => setScreen("levels")}>
               <Text style={[styles.back, { color: isDark ? "#e0305a" : level.accent, marginBottom: 0 }]}>Levels</Text>
             </TouchableOpacity>
             <Text style={{ color: isDark ? "#ffffff44" : "#9c6070", fontSize: 13 }}>
-              {cardIndex + 1} / {level.cards.length}
+              {cardIndex + 1} / {deck.length}
             </Text>
           </View>
           <View style={styles.progressBg}>
-            <View style={[styles.progressFill, {
-              width: `${((cardIndex + 1) / level.cards.length) * 100}%`,
-              backgroundColor: isDark ? "#e0305a" : level.accent
-            }]} />
+            <View
+              style={[
+                styles.progressFill,
+                { width: `${((cardIndex + 1) / deck.length) * 100}%`, backgroundColor: isDark ? "#e0305a" : level.accent },
+              ]}
+            />
           </View>
-          <View style={[styles.card, { backgroundColor: isDark ? "#1a0510" : "#fff", shadowColor: level.accent }]}>
+
+          <Text style={[styles.turn, { color: isDark ? "#f5d8e8" : level.dark }]}>
+            {forfeit ? `Forfeit for ${playerName(turn)}` : `${playerName(turn)}'s turn`}
+          </Text>
+
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: isDark ? "#1a0510" : "#fff", shadowColor: level.accent },
+              forfeit && { borderWidth: 1.5, borderColor: level.accent },
+            ]}
+          >
+            {!forfeit && (
+              <TouchableOpacity style={styles.keep} onPress={toggleKeep} hitSlop={12}>
+                <Text style={{ fontSize: 22, color: isDark ? "#e0305a" : level.accent }}>{isKept(card) ? "★" : "☆"}</Text>
+              </TouchableOpacity>
+            )}
             <View style={[styles.badge, { borderColor: level.accent + "44", backgroundColor: level.accent + "18" }]}>
               <Text style={[styles.badgeText, { color: isDark ? "#e0305a" : level.accent }]}>
-                {card.type === "challenge" ? "DARE" : "QUESTION"}
+                {forfeit ? "FORFEIT" : `${card.custom ? "YOUR " : ""}${isDare(card.type) ? "DARE" : "QUESTION"}`}
               </Text>
             </View>
-            <Text style={[styles.cardText, { color: isDark ? "#f5d8e8" : "#2d0a1a", fontStyle: card.type === "challenge" ? "italic" : "normal" }]}>
-              {card.text}
+            <Text
+              style={[
+                styles.cardText,
+                { color: isDark ? "#f5d8e8" : "#2d0a1a", fontStyle: forfeit || isDare(card.type) ? "italic" : "normal" },
+              ]}
+            >
+              {forfeit ?? card.text}
             </Text>
           </View>
+
+          {forfeit ? (
+            <TouchableOpacity style={styles.btnPrimary} onPress={advance}>
+              <Text style={styles.btnPrimaryText}>Forfeit Done</Text>
+            </TouchableOpacity>
+          ) : (
+            <>
+              <TouchableOpacity style={styles.btnPrimary} onPress={completeCard}>
+                <Text style={styles.btnPrimaryText}>
+                  {isDare(card.type) ? "Dare Done" : "Answered"}  +{heartsFor(card.type)} ♥
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.skip} onPress={skipCard}>
+                <Text style={[styles.skipText, { color: isDark ? "#f5d8e888" : "#9c6070" }]}>Skip and take a forfeit</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          <View style={{ marginTop: 20 }}>
+            <Scoreboard dark={isDark} />
+          </View>
           <Text style={[styles.levelLabel, { color: isDark ? "#ffffff22" : "#9c607066" }]}>
-            Level {level.id} — {level.name}
+            Level {level.id} — {level.name} · ☆ keeps a card for the end of the evening
           </Text>
-          <TouchableOpacity style={styles.btnPrimary} onPress={nextCard}>
-            <Text style={styles.btnPrimaryText}>
-              {cardIndex + 1 < level.cards.length ? "Next Card" : "Finish Level"}
-            </Text>
-          </TouchableOpacity>
         </ScrollView>
       )}
 
       {screen === "complete" && level && (
-        <View style={styles.center}>
+        <ScrollView style={styles.fill} contentContainerStyle={[styles.center, { paddingTop: 60 }]}>
           <Text style={{ fontSize: 60, marginBottom: 16 }}>🌹</Text>
           <Text style={[styles.heading, isDark && { color: "#f5d8e8" }]}>Level Complete</Text>
-          <Text style={[styles.subheading, { textAlign: "center", marginBottom: 40 }]}>
+          <Text style={[styles.subheading, { textAlign: "center", marginBottom: 24 }]}>
             You finished {level.name}.{"\n"}The night is just getting started...
           </Text>
-          {level.id < 5 && (
+          <View style={{ width: "100%", marginBottom: 20 }}>
+            <Scoreboard dark={isDark} />
+          </View>
+          {level.id < LEVELS.length && (
             <View style={styles.nextCard}>
               <Text style={{ fontSize: 28, marginBottom: 8 }}>{LEVELS[level.id].emoji}</Text>
               <Text style={styles.levelName}>Level {level.id + 1} — {LEVELS[level.id].name}</Text>
@@ -484,46 +458,224 @@ export default function App() {
           <TouchableOpacity style={[styles.btnSecondary, { marginTop: 12 }]} onPress={() => setScreen("levels")}>
             <Text style={styles.btnSecondaryText}>Back to Levels</Text>
           </TouchableOpacity>
-        </View>
+          <TouchableOpacity style={[styles.btnSecondary, { marginTop: 12 }]} onPress={endEvening}>
+            <Text style={styles.btnSecondaryText}>End the Evening</Text>
+          </TouchableOpacity>
+        </ScrollView>
       )}
 
+      {screen === "mycards" && (
+        <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+          <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 60 }} keyboardShouldPersistTaps="handled">
+            <TouchableOpacity onPress={() => setScreen(myCardsBack)}>
+              <Text style={styles.back}>Back</Text>
+            </TouchableOpacity>
+            <Text style={styles.heading}>Your Cards</Text>
+            <Text style={styles.subheading}>
+              Write your own questions and dares. They're shuffled into the level you choose, and they stay on this phone.
+            </Text>
+
+            <View style={styles.formCard}>
+              <View style={styles.row}>
+                {(["question", "challenge"] as const).map((t) => (
+                  <TouchableOpacity
+                    key={t}
+                    style={[styles.chip, draftType === t && styles.chipActive]}
+                    onPress={() => setDraftType(t)}
+                  >
+                    <Text style={[styles.chipText, draftType === t && styles.chipTextActive]}>
+                      {isDare(t) ? "Dare" : "Question"}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <TextInput
+                style={styles.cardInput}
+                placeholder={draftType === "question" ? "What would you like to ask?" : "What should they do?"}
+                placeholderTextColor="#9c607088"
+                value={draftText}
+                onChangeText={setDraftText}
+                maxLength={MAX_CARD_LENGTH}
+                multiline
+              />
+              <Text style={styles.formLabel}>Add to level</Text>
+              <View style={styles.levelRow}>
+                {LEVELS.map((lvl) => {
+                  const locked = lvl.id === PAID_LEVEL_ID && !purchase.unlocked;
+                  return (
+                    <TouchableOpacity
+                      key={lvl.id}
+                      disabled={locked}
+                      style={[styles.levelChip, draftLevel === lvl.id && { borderColor: lvl.accent, backgroundColor: lvl.accent + "18" }, locked && { opacity: 0.4 }]}
+                      onPress={() => setDraftLevel(lvl.id)}
+                    >
+                      <Text style={{ fontSize: 18 }}>{locked ? "🔒" : lvl.emoji}</Text>
+                      <Text style={styles.levelChipText}>{lvl.id}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <TouchableOpacity
+                style={[styles.btnPrimary, { marginTop: 16 }, !draftText.trim() && { opacity: 0.5 }]}
+                disabled={!draftText.trim()}
+                onPress={addCustomCard}
+              >
+                <Text style={styles.btnPrimaryText}>Add Card</Text>
+              </TouchableOpacity>
+            </View>
+
+            {customCards.length === 0 ? (
+              <Text style={[styles.subheading, { textAlign: "center", marginTop: 8 }]}>No cards yet. Your first one goes here.</Text>
+            ) : (
+              LEVELS.map((lvl) => {
+                const mine = customCards.filter((c) => c.levelId === lvl.id);
+                if (!mine.length) return null;
+                return (
+                  <View key={lvl.id} style={{ marginBottom: 12 }}>
+                    <Text style={[styles.formLabel, { color: lvl.dark }]}>
+                      {lvl.emoji} Level {lvl.id} — {lvl.name}
+                    </Text>
+                    {mine.map((c) => (
+                      <View key={c.id} style={styles.myCardRow}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={[styles.badgeText, { color: lvl.accent, marginBottom: 4 }]}>
+                            {isDare(c.type) ? "DARE" : "QUESTION"}
+                          </Text>
+                          <Text style={styles.myCardText}>{c.text}</Text>
+                        </View>
+                        <TouchableOpacity onPress={() => deleteCustomCard(c.id)} hitSlop={10}>
+                          <Text style={styles.deleteText}>Delete</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                );
+              })
+            )}
+          </ScrollView>
+        </KeyboardAvoidingView>
+      )}
+
+      {screen === "summary" && (
+        <ScrollView style={styles.fill} contentContainerStyle={{ padding: 24, paddingTop: 70 }}>
+          <Text style={{ fontSize: 56, textAlign: "center", marginBottom: 8 }}>🌹</Text>
+          <Text style={[styles.heading, { color: "#f5d8e8", textAlign: "center" }]}>Your Evening</Text>
+          <Text style={[styles.subheading, { color: "#f5d8e888", textAlign: "center" }]}>
+            {minutes} min · {plural(cardsPlayed, "card")}
+            {levelsFinished.length ? ` · ${plural(levelsFinished.length, "level")} finished` : ""}
+          </Text>
+
+          <Text style={styles.result}>{result}</Text>
+
+          <View style={styles.row}>
+            {([0, 1] as const).map((i) => (
+              <View key={i} style={[styles.summaryCard, styles.half]}>
+                <Text style={styles.summaryName} numberOfLines={1}>{playerName(i)}</Text>
+                <Text style={styles.summaryHearts}>{stats[i].hearts} ♥</Text>
+                <Text style={styles.summaryLine}>{stats[i].questions} answered</Text>
+                <Text style={styles.summaryLine}>{plural(stats[i].dares, "dare")} done</Text>
+                <Text style={styles.summaryLine}>{plural(stats[i].skips, "forfeit")}</Text>
+              </View>
+            ))}
+          </View>
+
+          <Text style={styles.summarySection}>Cards you kept</Text>
+          {kept.length === 0 ? (
+            <Text style={styles.summaryLine}>None tonight. Tap ☆ on a card to keep it here next time.</Text>
+          ) : (
+            kept.map((k, i) => (
+              <View key={i} style={styles.keptRow}>
+                <Text style={{ fontSize: 16 }}>{LEVELS[k.levelId - 1].emoji}</Text>
+                <Text style={styles.keptText}>{k.text}</Text>
+              </View>
+            ))
+          )}
+
+          <TouchableOpacity style={[styles.btnPrimary, { marginTop: 28 }]} onPress={shareSummary}>
+            <Text style={styles.btnPrimaryText}>Share Our Evening</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.btnGhost, { marginTop: 12 }]} onPress={() => setScreen("levels")}>
+            <Text style={styles.btnGhostText}>Keep Playing</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.btnGhost, { marginTop: 12 }]} onPress={newEvening}>
+            <Text style={styles.btnGhostText}>New Evening</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: "center", justifyContent: "center" },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, width: "100%" },
+  fill: { flex: 1, width: "100%" },
+  center: { flexGrow: 1, alignItems: "center", justifyContent: "center", padding: 24, width: "100%" },
+  row: { flexDirection: "row", gap: 10, flexWrap: "wrap" },
+  half: { flex: 1 },
   rose: { fontSize: 80, marginBottom: 8 },
   title: { fontSize: 52, fontWeight: "700", color: "#f5d8e8", textAlign: "center", lineHeight: 56 },
   titleItalic: { fontStyle: "italic", fontWeight: "400", color: "#e8a0b8" },
   subtitle: { color: "#f5d8e888", fontSize: 13, letterSpacing: 3, marginTop: 12, marginBottom: 48 },
-  hint: { color: "#f5d8e833", fontSize: 12, marginTop: 24, letterSpacing: 1 },
+  hint: { color: "#f5d8e855", fontSize: 12, marginTop: 24, letterSpacing: 1, textAlign: "center" },
   back: { color: "#c9748a", fontSize: 14, letterSpacing: 1, marginBottom: 24 },
   heading: { fontSize: 30, fontWeight: "700", color: "#2d0a1a", marginBottom: 6 },
-  subheading: { color: "#9c6070", fontSize: 14, marginBottom: 28 },
+  subheading: { color: "#9c6070", fontSize: 14, marginBottom: 28, lineHeight: 20 },
+  setupScreen: { flexGrow: 1, padding: 24, paddingTop: 60 },
+  nameInput: { borderWidth: 1.5, borderColor: "#f5d8e833", borderRadius: 16, paddingHorizontal: 18, paddingVertical: 16, fontSize: 18, color: "#f5d8e8", marginBottom: 14 },
+  scoreboard: { flexDirection: "row", borderRadius: 18, paddingVertical: 12, paddingHorizontal: 8, marginBottom: 18, shadowColor: "#9c3060", shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: 3 }, elevation: 2 },
+  scoreCell: { flex: 1, alignItems: "center" },
+  scoreName: { fontSize: 14, marginBottom: 2, maxWidth: "90%" },
+  scoreNameActive: { fontWeight: "700", textDecorationLine: "underline" },
+  scoreHearts: { fontSize: 20, fontWeight: "700" },
   levelCard: { borderRadius: 20, padding: 20, marginBottom: 14, flexDirection: "row", alignItems: "center", gap: 14, shadowColor: "#9c3060", shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
   levelIcon: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
   levelName: { fontSize: 18, fontWeight: "700", marginBottom: 2 },
   levelSub: { fontSize: 13 },
   cardScreen: { flexGrow: 1, padding: 24, paddingTop: 60 },
   cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 28 },
-  progressBg: { height: 2, backgroundColor: "#e0d0d844", borderRadius: 2, marginBottom: 36 },
+  progressBg: { height: 2, backgroundColor: "#e0d0d844", borderRadius: 2, marginBottom: 24 },
   progressFill: { height: 2, borderRadius: 2 },
-  card: { borderRadius: 28, padding: 40, marginBottom: 28, shadowOpacity: 0.15, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 6, alignItems: "center" },
+  turn: { fontSize: 15, fontWeight: "600", letterSpacing: 1, textAlign: "center", marginBottom: 14 },
+  card: { borderRadius: 28, padding: 40, marginBottom: 24, shadowOpacity: 0.15, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 6, alignItems: "center" },
+  keep: { position: "absolute", top: 16, right: 18 },
   badge: { borderWidth: 1, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6, marginBottom: 24 },
   badgeText: { fontSize: 11, letterSpacing: 2 },
   cardText: { fontSize: 22, lineHeight: 34, textAlign: "center", fontWeight: "400" },
-  levelLabel: { fontSize: 12, letterSpacing: 2, textAlign: "center", marginBottom: 24, textTransform: "uppercase" },
+  skip: { paddingVertical: 14, alignItems: "center" },
+  skipText: { fontSize: 14, letterSpacing: 1 },
+  levelLabel: { fontSize: 11, letterSpacing: 1.5, textAlign: "center", marginTop: 8, textTransform: "uppercase", lineHeight: 18 },
   nextCard: { backgroundColor: "#fff", borderRadius: 20, padding: 24, width: "100%", alignItems: "center", shadowColor: "#9c3060", shadowOpacity: 0.1, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 4 },
   btnPrimary: { backgroundColor: "#9c3060", borderRadius: 50, paddingVertical: 16, paddingHorizontal: 36, width: "100%", alignItems: "center", shadowColor: "#9c3060", shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
   btnPrimaryText: { color: "#fff", fontSize: 16, letterSpacing: 1.5, textTransform: "uppercase", fontWeight: "600" },
-  btnSecondary: { borderWidth: 1.5, borderColor: "#c9748a", borderRadius: 50, paddingVertical: 14, paddingHorizontal: 36, width: "100%", alignItems: "center" },
+  btnSecondary: { borderWidth: 1.5, borderColor: "#c9748a", borderRadius: 50, paddingVertical: 14, paddingHorizontal: 20, width: "100%", alignItems: "center" },
   btnSecondaryText: { color: "#9c3060", fontSize: 15, letterSpacing: 1 },
-  privacyLink: { alignSelf: "center", paddingVertical: 12, marginTop: 4 },
+  btnGhost: { borderWidth: 1.5, borderColor: "#f5d8e844", borderRadius: 50, paddingVertical: 14, paddingHorizontal: 20, width: "100%", alignItems: "center" },
+  btnGhostText: { color: "#f5d8e8", fontSize: 15, letterSpacing: 1 },
+  privacyLink: { alignSelf: "center", paddingVertical: 12, marginTop: 12 },
   privacyLinkText: { color: "#9c6070", fontSize: 13, textDecorationLine: "underline" },
   paywallBack: { position: "absolute", top: 60, left: 24 },
   restore: { paddingVertical: 16, marginTop: 8 },
   restoreText: { color: "#e8a0b8", fontSize: 14, letterSpacing: 1 },
   paywallNote: { color: "#f5d8e888", fontSize: 13, textAlign: "center", marginTop: 8 },
+  formCard: { backgroundColor: "#fff", borderRadius: 20, padding: 18, marginBottom: 24, shadowColor: "#9c3060", shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
+  chip: { borderWidth: 1.5, borderColor: "#e0d0d8", borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
+  chipActive: { borderColor: "#9c3060", backgroundColor: "#9c306018" },
+  chipText: { color: "#9c6070", fontSize: 14 },
+  chipTextActive: { color: "#9c3060", fontWeight: "600" },
+  cardInput: { borderWidth: 1.5, borderColor: "#e0d0d8", borderRadius: 14, padding: 14, minHeight: 90, fontSize: 16, color: "#2d0a1a", marginTop: 14, textAlignVertical: "top" },
+  formLabel: { fontSize: 12, letterSpacing: 1.5, textTransform: "uppercase", color: "#9c6070", marginTop: 16, marginBottom: 8 },
+  levelRow: { flexDirection: "row", gap: 8 },
+  levelChip: { flex: 1, borderWidth: 1.5, borderColor: "#e0d0d8", borderRadius: 14, paddingVertical: 6, alignItems: "center" },
+  levelChipText: { fontSize: 12, color: "#9c6070", marginTop: 2 },
+  myCardRow: { backgroundColor: "#fff", borderRadius: 14, padding: 14, marginBottom: 8, flexDirection: "row", alignItems: "center", gap: 12 },
+  myCardText: { fontSize: 15, color: "#2d0a1a", lineHeight: 21 },
+  deleteText: { color: "#c9748a", fontSize: 13 },
+  result: { color: "#e8a0b8", fontSize: 20, fontStyle: "italic", textAlign: "center", marginBottom: 20 },
+  summaryCard: { backgroundColor: "#ffffff0d", borderRadius: 18, padding: 18, alignItems: "center" },
+  summaryName: { color: "#f5d8e8", fontSize: 16, fontWeight: "600", marginBottom: 4 },
+  summaryHearts: { color: "#e0305a", fontSize: 28, fontWeight: "700", marginBottom: 8 },
+  summaryLine: { color: "#f5d8e888", fontSize: 13, lineHeight: 20 },
+  summarySection: { color: "#f5d8e8", fontSize: 13, letterSpacing: 2, textTransform: "uppercase", marginTop: 28, marginBottom: 10 },
+  keptRow: { flexDirection: "row", gap: 10, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: "#ffffff11" },
+  keptText: { flex: 1, color: "#f5d8e8", fontSize: 15, lineHeight: 21 },
 });
