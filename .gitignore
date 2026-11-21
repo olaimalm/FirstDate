@@ -39,3 +39,23 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Local Claude Code settings
+.claude/
+
+# Editors
+.vscode/
+.idea/
+
+# Secrets and signing (never commit these)
+.env
+.env.*
+credentials.json
+*.cer
+*.certSigningRequest
+
+# Build outputs
+*.ipa
+*.apk
+*.aab
+*.log

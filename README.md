@@ -2,12 +2,20 @@
 
 A card game for two adults, played face to face on one phone. Two players take turns with questions and dares across five levels, from light icebreakers to adults-only. Answering a question earns one heart and finishing a dare earns two. Skipping a card means taking a forfeit instead. When the evening ends, the app shows a summary of how it went.
 
-<p>
-  <img src="store/screenshots/v2/1-home.png" width="200" alt="Home screen">
-  <img src="store/screenshots/v2/3-turn.png" width="200" alt="A question card, with turns and score">
-  <img src="store/screenshots/v2/4-your-cards.png" width="200" alt="Writing your own cards">
-  <img src="store/screenshots/v2/6-summary.png" width="200" alt="Summary of the evening">
-</p>
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center"><img src="store/screenshots/v2/1-home.png" width="220" alt="Home screen"><br><sub>Home</sub></td>
+    <td align="center"><img src="store/screenshots/v2/2-players.png" width="220" alt="Entering the two players' names"><br><sub>Who's playing</sub></td>
+    <td align="center"><img src="store/screenshots/v2/3-turn.png" width="220" alt="A question card, with turns and score"><br><sub>Taking turns, earning hearts</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="store/screenshots/v2/5-forfeit.png" width="220" alt="A forfeit after skipping a card"><br><sub>Skip a card, take a forfeit</sub></td>
+    <td align="center"><img src="store/screenshots/v2/4-your-cards.png" width="220" alt="Writing your own cards"><br><sub>Writing your own cards</sub></td>
+    <td align="center"><img src="store/screenshots/v2/6-summary.png" width="220" alt="Summary of the evening"><br><sub>Summary of the evening</sub></td>
+  </tr>
+</table>
 
 ## Features
 
