@@ -134,7 +134,7 @@ Velg **Data Not Collected**. Kjøp håndteres av Apple, og koden samler ikke inn
 >
 > Levels 1 to 4 are free. Level 5 is unlocked with the non-consumable in-app purchase com.olaimalm.FirstDate.untamed. To test it: tap Begin the Evening, then Start, then Level 5, then Unlock. Restore Purchase is on the same screen.
 >
-> Levels 4 and 5 contain adult themes, and the app is rated 18+. All cards are written by the developer. They are prompts for consenting adults, and players can skip any card.
+> Levels 4 and 5 contain adult themes, and the app is rated 18+. All built-in cards are written by the developer. They are prompts for consenting adults, and players can skip any card.
 
 Sign-in required: **No**.
 
