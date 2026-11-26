@@ -1,5 +1,7 @@
 # First Date: Questions & Dares
 
+**[Download on the App Store](https://apps.apple.com/app/id6831995660)** · iPhone · 18+
+
 A card game for two adults, played face to face on one phone. Two players take turns with questions and dares across five levels, from light icebreakers to adults-only. Answering a question earns one heart and finishing a dare earns two. Skipping a card means taking a forfeit instead. When the evening ends, the app shows a summary of how it went.
 
 ## Screenshots
@@ -53,7 +55,7 @@ Open the app in Expo Go, or press `w` to run it in a browser. In development the
 
 ## Status
 
-Submitted to the App Store in November 2026. Support and privacy policy: [olaimalm.github.io/firstdate-support](https://olaimalm.github.io/firstdate-support/).
+Live on the [App Store](https://apps.apple.com/app/id6831995660) since November 2026. The first version was rejected under guideline 4.3 for being too similar to other question apps. The turn-based scoring, forfeits, custom cards and evening summary were built in response, and the second submission was approved. Support and privacy policy: [olaimalm.github.io/firstdate-support](https://olaimalm.github.io/firstdate-support/).
 
 ## License
 
